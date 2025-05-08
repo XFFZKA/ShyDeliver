@@ -1,5 +1,6 @@
 package com.sky.controller.admin;
 
+import com.sky.constant.MessageConstant;
 import com.sky.result.Result;
 import com.sky.utils.AliOssUtil;
 import com.sky.utils.LocalFileStorageUtil;
@@ -44,9 +45,9 @@ public class CommonController {
             log.info("path {}", path);
             return Result.success(path);
 
-
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.error(e.getMessage());
         }
+        return Result.error(MessageConstant.UPLOAD_FAILED);
     }
 }
