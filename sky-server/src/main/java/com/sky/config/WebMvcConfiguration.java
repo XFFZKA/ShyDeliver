@@ -1,5 +1,6 @@
 package com.sky.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import com.sky.interceptor.JwtTokenAdminInterceptor;
 import com.sky.json.JacksonObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,8 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
     @Autowired
     private JwtTokenAdminInterceptor jwtTokenAdminInterceptor;
 
+    @Value("${file.upload-dir:uploads/}")
+    private String uploadDir;
     /**
      * 注册自定义拦截器
      *
@@ -70,6 +73,9 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
     protected void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/doc.html").addResourceLocations("classpath:/META-INF/resources/");
         registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
+// 文件上传路径映射（重要修复：添加末尾斜杠）
+        registry.addResourceHandler("/files/**")
+                .addResourceLocations("file:" + uploadDir + (uploadDir.endsWith("/") ? "" : "/"));
     }
 
 
