@@ -6,9 +6,9 @@ import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
 import com.sky.enumeration.OperationType;
 import com.sky.vo.DishVO;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
+
+import java.util.List;
 
 @Mapper
 public interface DishMapper {
@@ -24,6 +24,16 @@ public interface DishMapper {
     @AutoFill(values = OperationType.INSERT)
     void insert(Dish dish);
 
-
     Page<DishVO> pageQuery(DishPageQueryDTO queryDTO);
+
+    @Select("select * from dish where id = #{id}")
+    Dish getById(Long id);
+
+    @Delete("delete from dish where id = #{id}")
+    void delete(Long id);
+
+    @AutoFill(values = OperationType.UPDATE)
+    void update(Dish dish1);
+
+    void deleteByIds(List<Long> ids);
 }

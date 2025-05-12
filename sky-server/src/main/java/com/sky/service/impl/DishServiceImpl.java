@@ -2,13 +2,17 @@ package com.sky.service.impl;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.sky.constant.MessageConstant;
+import com.sky.constant.StatusConstant;
 import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
 import com.sky.entity.DishFlavor;
+import com.sky.exception.DeletionNotAllowedException;
 import com.sky.mapper.CategoryMapper;
 import com.sky.mapper.DishFlavorMapper;
 import com.sky.mapper.DishMapper;
+import com.sky.mapper.SetmealDishMapper;
 import com.sky.result.PageResult;
 import com.sky.service.DishService;
 import com.sky.vo.DishVO;
@@ -28,6 +32,8 @@ public class DishServiceImpl implements DishService {
     private DishMapper dishMapper;
     @Autowired
     private DishFlavorMapper dishFlavorMapper;
+    @Autowired
+    private SetmealDishMapper setmealDishMapper;
 
     @Override
     @Transactional
@@ -57,5 +63,62 @@ public class DishServiceImpl implements DishService {
         Page<DishVO> page = dishMapper.pageQuery(queryDTO);
 
         return new PageResult(page.getTotal(),page.getResult());
+    }
+
+    @Transactional
+    @Override
+    public void deleteBatch(List<Long> ids) {
+        //是否在起售
+        for (Long id : ids) {
+            Dish dish = dishMapper.getById(id);
+            if(dish.getStatus() == StatusConstant.ENABLE){
+                throw new DeletionNotAllowedException(MessageConstant.DISH_ON_SALE);
+            }
+        }
+        //是否被套餐关联了
+        List<Long> setMeal = setmealDishMapper.findSealIdByDishId(ids);
+        if (setMeal != null && setMeal.size() > 0) {
+            throw  new DeletionNotAllowedException(MessageConstant.DISH_BE_RELATED_BY_SETMEAL);
+        }
+
+        //删除菜品表中的菜品数据
+
+//        for (Long id : ids) {
+//            dishMapper.delete(id);
+//            dishFlavorMapper.deleteByDishId(id);
+//        }
+
+        dishMapper.deleteByIds(ids);
+        dishFlavorMapper.deleteByDishIds(ids);
+        //删除菜品关联的口味数据
+    }
+
+    @Override
+    public DishVO findByIdWithFlavor(Long id) {
+        Dish dish = dishMapper.getById(id);
+        DishVO dishVO = new DishVO();
+        BeanUtils.copyProperties(dish, dishVO);
+        List<DishFlavor> dishFlavors = dishFlavorMapper.getFlavorByDishId(id);
+        dishVO.setFlavors(dishFlavors);
+        return dishVO;
+    }
+
+    @Override
+    public void updateWithFlavor(DishDTO dish) {
+        Dish dish1 = new Dish();
+        BeanUtils.copyProperties(dish, dish1);
+        dishMapper.update(dish1);
+
+        Long dishId = dish.getId();
+        dishFlavorMapper.deleteByDishId(dishId);
+
+
+        List<DishFlavor> flavors = dish.getFlavors();
+        if (flavors != null && flavors.size() > 0) {
+            flavors.forEach(flavor -> {flavor.setDishId(dishId);});
+            dishFlavorMapper.insertBatch(flavors);
+        }
+
+
     }
 }

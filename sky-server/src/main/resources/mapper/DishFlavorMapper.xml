@@ -11,4 +11,11 @@
         </foreach>
 
     </insert>
+
+    <delete id="deleteByDishIds">
+        delete  from dish_flavor where dish_id in
+        <foreach collection="dishIds" separator="," open="(" close=")" item="dishId">
+            #{dishId}
+        </foreach>
+    </delete>
 </mapper>
