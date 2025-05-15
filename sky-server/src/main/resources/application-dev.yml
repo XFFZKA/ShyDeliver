@@ -16,3 +16,6 @@ sky:
     access-key-id:
     access-key-secret:
     bucket-name:
+  wechat:
+    appid: wxd0e4c8d9ef06ab1c
+    secret: 4119ff288604cec6c1c1ac0e9eb7a77c
