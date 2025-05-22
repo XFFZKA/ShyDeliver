@@ -17,7 +17,7 @@
         </where>
     </select>
 
-    <update id="update" parameterType="addressBook">
+    <update id="update" parameterType="addressBook" >
         update address_book
         <set>
             <if test="consignee != null">
